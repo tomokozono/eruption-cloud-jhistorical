@@ -1,0 +1,76 @@
+eruptions:
+
+  Sakurajima1914:
+    name_ja: 桜島大正噴火
+    lat: 31.583
+    lon: 130.650
+    vent_height_m: 1117.0
+    # 噴火: 1914-01-12 10:00 JST → UTC 01:00 → 20CRv3 snap → 00:00 UTC
+    analysis_utc: "1914-01-12 00:00"
+    reanalysis: 20cr
+    forward:
+      r0_list: [10, 30, 50, 100]
+      u0_list: [50, 100, 150]
+    qdet:
+      z_target_m: 18000.0
+      r0_grid: [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150]
+      T0_grid_K: [1073, 1173, 1273, 1373]
+      n0_grid: [0.03, 0.04, 0.05]
+
+  Komagatake1929:
+    name_ja: 北海道駒ヶ岳
+    lat: 42.06
+    lon: 140.68
+    vent_height_m: 1131.0
+    # 噴火: 1929-06-17 11:00 JST → UTC 02:00 → 20CRv3 snap → 03:00 UTC
+    analysis_utc: "1929-06-17 03:00"
+    reanalysis: 20cr
+    forward:
+      r0_list: [10, 30, 50, 100]
+      u0_list: [50, 100, 150]
+    qdet:
+      z_target_m: 13900.0
+      r0_grid: [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150]
+      T0_grid_K: [1073, 1173, 1273, 1373]
+      n0_grid: [0.03, 0.04, 0.05]
+
+  Tokachi1962:
+    name_ja: 十勝岳
+    lat: 43.418
+    lon: 142.686
+    vent_height_m: 2077.0
+    # 噴火: 1962-06-29 18:00 UTC (ERA5 hourly, no snap needed)
+    analysis_utc: "1962-06-29 18:00"
+    reanalysis: era5
+    era5_ncfile: ipynb/Tokachi1962/era5_tokachi_19620629_18UTC_pl.nc
+    # ERA5 ダウンロード設定 (ncfile が存在しない場合に使用)
+    era5_download:
+      area: [44.5, 141.5, 42.5, 143.5]   # [N, W, S, E]
+    forward:
+      r0_list: [10, 30, 50, 100]
+      u0_list: [50, 100, 150]
+    qdet:
+      z_target_m: 12000.0
+      r0_grid: [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150]
+      T0_grid_K: [1073, 1173, 1273, 1373]
+      n0_grid: [0.03, 0.04, 0.05]
+
+  Usu1977:
+    name_ja: 有珠山
+    lat: 42.544
+    lon: 140.839
+    vent_height_m: 733.0
+    # 噴火: 1977-08-07 01:40 UTC → ERA5 nearest hour → 02:00 UTC
+    analysis_utc: "1977-08-07 02:00"
+    reanalysis: era5
+    era5_ncfile: ipynb/Usu1977/era5_usuzan_19770807_02UTC_pl.nc
+    era5_download:
+      area: [43.2, 139.8, 41.8, 141.8]   # [N, W, S, E]
+    forward:
+      r0_list: [10, 30, 50, 100]
+      u0_list: [50, 100, 150]
+    qdet:
+      z_target_m: 12000.0
+      r0_grid: [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150]
+      T0_grid_K: [1073, 1173, 1273, 1373]
+      n0_grid: [0.03, 0.04, 0.05]

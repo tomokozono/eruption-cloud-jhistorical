@@ -1,0 +1,22 @@
+[project]
+name = "eruption-cloud-jhistorical"
+version = "0.1.0"
+description = "Woodhouse (2013) 1-D eruption cloud model with ERA5 / 20CRv3 reanalysis"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+    "pandas",
+    "scipy",
+    "xarray",
+    "netCDF4",
+    "matplotlib",
+    "jupyterlab",
+    "ipykernel",
+    "pyyaml>=6.0.3",
+]
+
+[project.optional-dependencies]
+cds = ["cdsapi"]   # ERA5 download via CDS API (requires ~/.cdsapirc)
+
+[tool.uv]
+dev-dependencies = []
