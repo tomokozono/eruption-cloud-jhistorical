@@ -1,6 +1,8 @@
 """20CRv3 reanalysis loader via NOAA PSL THREDDS / OPeNDAP."""
 from __future__ import annotations
 
+import contextlib
+import os
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -8,6 +10,20 @@ from datetime import datetime, timedelta, timezone
 
 
 _BASE_URL = "https://psl.noaa.gov/thredds/dodsC/Datasets/20thC_ReanV3/prsSI"
+
+
+@contextlib.contextmanager
+def _suppress_hdf5_diag():
+    """Redirect stderr at OS level to silence HDF5 diagnostic output from netCDF4."""
+    old_fd = os.dup(2)
+    devnull = os.open(os.devnull, os.O_WRONLY)
+    os.dup2(devnull, 2)
+    os.close(devnull)
+    try:
+        yield
+    finally:
+        os.dup2(old_fd, 2)
+        os.close(old_fd)
 
 
 def snap_to_3h(dt: datetime) -> datetime:
@@ -48,10 +64,11 @@ def load_20cr(lat0: float, lon0: float, t_use: datetime) -> pd.DataFrame:
         "hgt": f"{_BASE_URL}/hgt.{year}.nc",
     }
 
-    dsu = xr.open_dataset(urls["u"])
-    dsv = xr.open_dataset(urls["v"])
-    dst = xr.open_dataset(urls["air"])
-    dsh = xr.open_dataset(urls["hgt"])
+    with _suppress_hdf5_diag():
+        dsu = xr.open_dataset(urls["u"],   engine="netcdf4")
+        dsv = xr.open_dataset(urls["v"],   engine="netcdf4")
+        dst = xr.open_dataset(urls["air"], engine="netcdf4")
+        dsh = xr.open_dataset(urls["hgt"], engine="netcdf4")
 
     def _sel(ds):
         da = ds[list(ds.data_vars)[0]]

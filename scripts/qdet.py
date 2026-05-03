@@ -44,7 +44,16 @@ def load_atmosphere(cfg: dict):
             )
         df = load_era5_nc(str(ncfile), cfg["lat"], cfg["lon"])
     else:
-        df = load_20cr(cfg["lat"], cfg["lon"], t_use)
+        csvfile = ROOT / cfg["cr20_csvfile"] if "cr20_csvfile" in cfg else None
+        if csvfile and csvfile.exists():
+            df = pd.read_csv(csvfile)
+        else:
+            print(f"Fetching 20CR from OPeNDAP …")
+            df = load_20cr(cfg["lat"], cfg["lon"], t_use)
+            if csvfile:
+                csvfile.parent.mkdir(parents=True, exist_ok=True)
+                df.to_csv(csvfile, index=False)
+                print(f"  → saved {csvfile.relative_to(ROOT)}")
 
     return build_profile(df, cfg["vent_height_m"])
 
