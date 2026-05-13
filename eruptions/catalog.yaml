@@ -41,10 +41,14 @@ eruptions:
     lat: 43.418
     lon: 142.686
     vent_height_m: 2077.0
-    # 噴火: 1962-06-29 18:00 UTC (ERA5 hourly, no snap needed)
-    analysis_utc: "1962-06-29 18:00"
+    # 噴火: 1962-06-30 09:00 JST → 00:00 UTC (ERA5 hourly, no snap needed)
+    analysis_utc: "1962-06-30 00:00"
     reanalysis: era5
-    era5_ncfile: data/Tokachi1962/era5_tokachi_19620629_18UTC_pl.nc
+    era5_ncfile: data/Tokachi1962/era5_tokachi_19620630_00UTC_pl.nc
+    # 噴火: 1962-06-29 18:00 UTC (ERA5 hourly, no snap needed)
+#    analysis_utc: "1962-06-29 18:00"
+#    reanalysis: era5
+#    era5_ncfile: data/Tokachi1962/era5_tokachi_19620629_18UTC_pl.nc
     # ERA5 ダウンロード設定 (ncfile が存在しない場合に使用)
     era5_download:
       area: [44.5, 141.5, 42.5, 143.5]   # [N, W, S, E]
