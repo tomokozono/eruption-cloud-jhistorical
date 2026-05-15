@@ -23,7 +23,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import yaml
-from matplotlib.collections import LineCollection
 from matplotlib.lines import Line2D
 
 ROOT = Path(__file__).parent.parent
@@ -52,9 +51,19 @@ def load_atmosphere(cfg: dict):
     return build_profile(df, cfg["vent_height_m"])
 
 
-def make_segments(x, y):
-    pts = np.array([x, y]).T.reshape(-1, 1, 2)
-    return np.concatenate([pts[:-1], pts[1:]], axis=1)
+def plot_gradient_line(ax, Q_arr, z_arr, r0_plot, cmap, norm, linestyle,
+                       linewidth=2.5, alpha=0.9, n_chunks=10):
+    """Plot a curve with gradient r0 coloring using ax.plot() for correct dash rendering."""
+    n = len(Q_arr)
+    if n < 2:
+        return
+    chunk_size = max(2, n // n_chunks)
+    for start in range(0, n - 1, chunk_size):
+        end = min(start + chunk_size + 1, n)
+        r0_mid = float(np.mean(r0_plot[start:end]))
+        ax.plot(Q_arr[start:end], z_arr[start:end],
+                color=cmap(norm(r0_mid)), linestyle=linestyle,
+                linewidth=linewidth, alpha=alpha, solid_capstyle="butt")
 
 
 def trim_curve(Q_vals, z_vals, r0_arr):
@@ -120,12 +129,7 @@ def make_figure(catalog: dict, n0: float, u0: float, output_path: Path):
             all_Q.extend(Q_arr.tolist())
             all_z.extend(z_arr.tolist())
 
-            segs = make_segments(Q_arr, z_arr)
-            r0_mid = 0.5 * (r0_plot[:-1] + r0_plot[1:])
-            lc = LineCollection(segs, cmap=cmap, norm=norm, linestyle=ls,
-                                linewidth=2.5, alpha=0.9)
-            lc.set_array(r0_mid)
-            ax.add_collection(lc)
+            plot_gradient_line(ax, Q_arr, z_arr, r0_plot, cmap, norm, ls)
 
             # Black dot at observed plume height
             Q_dot = interp_Q_at_z(Q_arr, z_arr, z_target)
@@ -143,10 +147,10 @@ def make_figure(catalog: dict, n0: float, u0: float, output_path: Path):
     ax.set_xlim(1e5, 1e8)
     ax.set_ylim(0, 25000)
 
-    ax.set_xlabel("Mass flux  $Q$  [kg/s]", fontsize=12)
+    ax.set_xlabel("Discharge rate  $Q$  [kg/s]", fontsize=12)
     ax.set_ylabel("Column height above vent  [m]", fontsize=12)
     ax.set_title(
-        f"Column height vs mass flux\n"
+        f"Column height vs discharge rate\n"
         f"($n_0$ = {n0},  $u_0$ = {int(u0)} m/s,  "
         f"$r_0$ = {int(R0_MIN)}–{int(R0_MAX)} m)\n"
         f"black dot: observed plume height",
