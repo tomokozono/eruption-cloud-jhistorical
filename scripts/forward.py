@@ -73,14 +73,17 @@ def run_forward(cfg: dict, eruption_key: str, output_dir: Path):
 
     r0_list = cfg["forward"]["r0_list"]
     u0_list = cfg["forward"]["u0_list"]
+    T0 = float(cfg["forward"]["T0_K"])
+    n0 = float(cfg["forward"]["n0"])
 
     print(f"[{eruption_key}] {name_ja}  ({reanalysis}  {t_label})")
     print(f"  r0_list = {r0_list}")
     print(f"  u0_list = {u0_list}")
+    print(f"  T0={T0} K  n0={n0}")
 
     df_rel, v_func, tempa_func, p_func = load_atmosphere(cfg)
     z_stop = float(df_rel["z_rel_m"].max())
-    params = PlumeParams()
+    params = PlumeParams(T0=T0, n0=n0)
 
     # --- run model --------------------------------------------------------
     results: dict[float, dict[int, dict]] = {}
