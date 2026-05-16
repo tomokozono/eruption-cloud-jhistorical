@@ -144,9 +144,12 @@ def run_forward3(cfg: dict, eruption_key: str, output_dir: Path):
     plt.tight_layout()
 
     out_png = output_dir / f"plume_forward3_{eruption_key}.png"
+    out_eps = output_dir / f"plume_forward3_{eruption_key}.eps"
     plt.savefig(out_png, dpi=150)
+    plt.savefig(out_eps)
     plt.close()
     print(f"  → saved {out_png.relative_to(ROOT)}")
+    print(f"  → saved {out_eps.relative_to(ROOT)}")
 
 
 def main():
