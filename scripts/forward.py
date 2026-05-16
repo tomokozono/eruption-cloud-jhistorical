@@ -116,7 +116,10 @@ def run_forward(cfg: dict, eruption_key: str, output_dir: Path):
 
         axs[i, 0].set_ylabel("Height above vent (m)")
         axs[i, 0].set_xlabel("Velocity (m/s)")
-        axs[i, 0].set_title(f"Velocity profile  r0={int(r0)} m")
+        title0 = f"Velocity profile  r0={int(r0)} m"
+        if i == 0:
+            title0 += f"\n$T_0$={int(T0)} K,  $n_0$={n0}"
+        axs[i, 0].set_title(title0)
         axs[i, 0].legend(fontsize=8)
         axs[i, 0].grid(True)
 
@@ -132,7 +135,7 @@ def run_forward(cfg: dict, eruption_key: str, output_dir: Path):
     ax_wind.set_xlabel("Wind speed (m/s)", color="b")
     ax_wind.tick_params(axis="x", colors="b")
     ax_wind.set_xlim(0, 80)
-    ax_wind.set_title(f"{reanalysis} wind profile\n{eruption_key}  {t_label}\n$T_0$={int(T0)} K,  $n_0$={n0}")
+    ax_wind.set_title(f"{reanalysis} wind profile\n{eruption_key}  {t_label}")
     ax_wind.grid(True)
 
     ax_dir.plot(df_rel["WindDirection_deg"], df_rel["z_rel_m"], "r")
