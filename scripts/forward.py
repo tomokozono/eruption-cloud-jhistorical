@@ -116,9 +116,10 @@ def run_forward(cfg: dict, eruption_key: str, output_dir: Path):
 
         axs[i, 0].set_ylabel("Height above vent (m)")
         axs[i, 0].set_xlabel("Velocity (m/s)")
-        title0 = f"Velocity profile  r0={int(r0)} m"
         if i == 0:
-            title0 += f"\n$T_0$={int(T0)} K,  $n_0$={n0}"
+            title0 = f"$T_0$={int(T0)} K,  $n_0$={n0}\nVelocity profile  r0={int(r0)} m"
+        else:
+            title0 = f"Velocity profile  r0={int(r0)} m"
         axs[i, 0].set_title(title0)
         axs[i, 0].legend(fontsize=8)
         axs[i, 0].grid(True)
