@@ -71,6 +71,7 @@ def run_forward3(cfg: dict, eruption_key: str, output_dir: Path):
     t_label = cfg["analysis_utc"] + " UTC"
     reanalysis = cfg["reanalysis"].upper()
     name_ja = cfg.get("name_ja", eruption_key)
+    name_en = cfg.get("name_en", eruption_key)
     T0 = float(cfg["forward"]["T0_K"])
     n0 = float(cfg["forward"]["n0"])
     z_target = float(cfg["qdet"]["z_target_m"])
@@ -112,6 +113,8 @@ def run_forward3(cfg: dict, eruption_key: str, output_dir: Path):
         axs[col].axhline(z_target, color="black", linewidth=1.2, linestyle=":",
                          label=f"observed  {z_target/1000:.1f} km")
 
+    axs[0].text(0.02, 0.98, name_en, transform=axs[0].transAxes,
+                fontsize=12, fontweight="bold", va="top", ha="left")
     axs[0].set_ylabel("Height above vent (m)")
     axs[0].set_xlabel("Velocity (m/s)")
     axs[0].set_title(f"$T_0$={int(T0)} K,  $n_0$={n0}\nVelocity profile")

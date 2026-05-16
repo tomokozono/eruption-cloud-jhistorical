@@ -2,6 +2,7 @@ eruptions:
 
   Sakurajima1914:
     name_ja: 桜島大正噴火
+    name_en: "Sakurajima (1914)"
     lat: 31.58
     lon: 130.64
     vent_height_m: 500.0
@@ -25,6 +26,7 @@ eruptions:
 
   Komagatake1929:
     name_ja: 北海道駒ヶ岳
+    name_en: "Hokkaido-Komagatake (1929)"
     lat: 42.06
     lon: 140.68
     vent_height_m: 1131.0
@@ -48,6 +50,7 @@ eruptions:
 
   Tokachi1962:
     name_ja: 十勝岳
+    name_en: "Tokachidake (1962)"
     lat: 43.42
     lon: 142.68
     vent_height_m: 1725.0
@@ -78,6 +81,7 @@ eruptions:
 
   Usu1977:
     name_ja: 有珠山
+    name_en: "Usu (1977)"
     lat: 42.54
     lon: 140.82
     vent_height_m: 550.0
