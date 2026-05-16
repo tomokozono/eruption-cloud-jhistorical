@@ -156,8 +156,11 @@ def make_figure(catalog: dict, u0: float, output_path: Path):
     plt.tight_layout()
     output_path.parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(output_path, dpi=150)
+    out_eps = output_path.with_suffix(".eps")
+    plt.savefig(out_eps)
     plt.close()
     print(f"  → saved {output_path.relative_to(ROOT)}")
+    print(f"  → saved {out_eps.relative_to(ROOT)}")
 
 
 def main():
