@@ -39,14 +39,15 @@ def main():
         images.append(img)
         print(f"  loaded {png.relative_to(ROOT)}  ({img.width}×{img.height})")
 
-    total_w = sum(img.width for img in images)
+    gap = 30  # pixels between figures
+    total_w = sum(img.width for img in images) + gap * (len(images) - 1)
     max_h   = max(img.height for img in images)
 
     merged = Image.new("RGB", (total_w, max_h), color=(255, 255, 255))
     x = 0
     for img in images:
         merged.paste(img, (x, 0))
-        x += img.width
+        x += img.width + gap
 
     out_path = out_root / "forward3_merged.png"
     merged.save(out_path, dpi=(150, 150))
