@@ -135,7 +135,7 @@ def run_forward2(cfg: dict, eruption_key: str, output_dir: Path):
     ax_wind.set_xlabel("Wind speed (m/s)", color="b")
     ax_wind.tick_params(axis="x", colors="b")
     ax_wind.set_xlim(0, 80)
-    ax_wind.set_title(f"{reanalysis} wind profile\n{eruption_key}  {t_label}")
+    ax_wind.set_title(f"{reanalysis} wind profile\n{eruption_key}  {t_label}\n$T_0$={int(T0)} K,  $n_0$={n0}")
     ax_wind.grid(True)
 
     ax_dir.plot(df_rel["WindDirection_deg"], df_rel["z_rel_m"], "r")
