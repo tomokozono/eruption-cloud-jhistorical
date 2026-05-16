@@ -32,7 +32,7 @@ U0_LIST = [100, 200]
 R0_LIST = [50, 100]
 
 # color → u0, linestyle → r0
-U0_COLORS = {100: "tab:blue", 200: "tab:red"}
+U0_COLORS = {100: "tab:green", 200: "tab:orange"}
 R0_STYLES  = {50: "-", 100: "--"}
 
 
