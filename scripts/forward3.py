@@ -113,7 +113,6 @@ def run_forward3(cfg: dict, eruption_key: str, output_dir: Path):
         axs[col].axhline(z_target, color="black", linewidth=1.2, linestyle=":",
                          label=f"observed  {z_target/1000:.1f} km")
 
-    fig.suptitle(name_en, x=0.02, ha="left", fontsize=20, fontweight="bold")
     axs[0].set_ylabel("Height above vent (m)")
     axs[0].set_xlabel("Velocity (m/s)")
     axs[0].set_title(f"$T_0$={int(T0)} K,  $n_0$={n0}\nVelocity profile")
@@ -143,7 +142,7 @@ def run_forward3(cfg: dict, eruption_key: str, output_dir: Path):
     ax_dir.tick_params(axis="x", colors="r")
     ax_dir.set_xlim(0, 360)
 
-    plt.tight_layout(rect=[0, 0, 1, 0.92])
+    plt.tight_layout()
 
     out_png = output_dir / f"plume_forward3_{eruption_key}.png"
     out_eps = output_dir / f"plume_forward3_{eruption_key}.eps"
