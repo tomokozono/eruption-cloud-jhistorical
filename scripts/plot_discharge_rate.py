@@ -132,7 +132,7 @@ def main():
     y_positions = {key: i for i, key in enumerate(reversed(ERUPTION_ORDER))}
     y_labels    = {key: catalog[key].get("name_en", key) for key in ERUPTION_ORDER}
 
-    offsets = {100: -0.15, 150: 0.0, 200: 0.15}
+    offsets = {100: 0.15, 150: 0.0, 200: -0.15}
 
     for u0 in U0_LIST:
         marker = U0_MARKERS[u0]
