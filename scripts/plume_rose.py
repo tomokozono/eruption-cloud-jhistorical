@@ -45,6 +45,12 @@ R0_STEP = 5.0
 
 ERUPTION_ORDER = ["Sakurajima1914", "Komagatake1929", "Tokachi1962", "Usu1977"]
 
+# Per-eruption circle settings (step and max in metres)
+CIRCLE_CONFIGS = {
+    "Sakurajima1914": {"step": 2000.0, "max": 8000.0},
+    "default":        {"step": 1000.0, "max": 4000.0},
+}
+
 
 def load_atmosphere(cfg: dict):
     t_use = datetime.strptime(cfg["analysis_utc"], "%Y-%m-%d %H:%M")
@@ -139,8 +145,9 @@ def make_rose(cfg: dict, eruption_key: str, output_dir: Path):
     z_arr = res["z"]
 
     # --- plot ----------------------------------------------------------------
-    CIRCLE_STEP = 2000.0   # m
-    CIRCLE_MAX  = 8000.0   # m
+    cc = CIRCLE_CONFIGS.get(eruption_key, CIRCLE_CONFIGS["default"])
+    CIRCLE_STEP = cc["step"]
+    CIRCLE_MAX  = cc["max"]
     max_plot    = CIRCLE_MAX * 1.15
 
     fig, ax = plt.subplots(figsize=(6, 6))
