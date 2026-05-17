@@ -139,35 +139,30 @@ def make_rose(cfg: dict, eruption_key: str, output_dir: Path):
     z_arr = res["z"]
 
     # --- plot ----------------------------------------------------------------
-    max_dist = max(np.sqrt(east**2 + north**2).max(), 500.0)
-    # Choose circle interval: target ~5 circles
-    raw_step = max_dist / 5.0
-    magnitude = 10 ** np.floor(np.log10(raw_step))
-    circle_step = np.ceil(raw_step / magnitude) * magnitude
-    max_plot = circle_step * np.ceil(max_dist / circle_step) + circle_step * 0.5
+    CIRCLE_STEP = 2000.0   # m
+    CIRCLE_MAX  = 8000.0   # m
+    max_plot    = CIRCLE_MAX * 1.15
 
     fig, ax = plt.subplots(figsize=(6, 6))
 
-    # Concentric distance circles
-    r = circle_step
-    while r <= max_plot:
+    # Concentric distance circles (fixed 2 km intervals up to 8 km)
+    for r in np.arange(CIRCLE_STEP, CIRCLE_MAX + 1.0, CIRCLE_STEP):
         circle = plt.Circle((0, 0), r, fill=False, color="black",
                              linewidth=0.7, zorder=1)
         ax.add_patch(circle)
         ax.text(0, r, f"{r/1000:.0f} km", ha="center", va="bottom",
                 fontsize=7, color="gray")
-        r += circle_step
 
-    # Compass labels
-    pad = max_plot * 0.05
-    ax.text(0,  max_plot + pad, "N", ha="center", va="bottom", fontsize=10, fontweight="bold")
-    ax.text(0, -max_plot - pad, "S", ha="center", va="top",    fontsize=10, fontweight="bold")
-    ax.text( max_plot + pad, 0, "E", ha="left",   va="center", fontsize=10, fontweight="bold")
-    ax.text(-max_plot - pad, 0, "W", ha="right",  va="center", fontsize=10, fontweight="bold")
+    # Compass labels — just outside the outermost circle
+    pad = CIRCLE_MAX * 0.08
+    ax.text(0,  CIRCLE_MAX + pad, "N", ha="center", va="bottom", fontsize=10, fontweight="bold")
+    ax.text(0, -CIRCLE_MAX - pad, "S", ha="center", va="top",    fontsize=10, fontweight="bold")
+    ax.text( CIRCLE_MAX + pad, 0, "E", ha="left",   va="center", fontsize=10, fontweight="bold")
+    ax.text(-CIRCLE_MAX - pad, 0, "W", ha="right",  va="center", fontsize=10, fontweight="bold")
 
     # Plume trajectory colored by height
     cmap_z = cm.plasma
-    norm_z = mcolors.Normalize(vmin=0, vmax=z_target)
+    norm_z = mcolors.Normalize(vmin=0, vmax=15000)
     points  = np.array([east, north]).T.reshape(-1, 1, 2)
     segs    = np.concatenate([points[:-1], points[1:]], axis=1)
     lc = LineCollection(segs, cmap=cmap_z, norm=norm_z, linewidth=2.5, zorder=3)
