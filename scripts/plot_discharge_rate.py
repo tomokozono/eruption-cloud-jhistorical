@@ -3,8 +3,8 @@
 Discharge rate summary: Q at observed plume height for each eruption.
 
 For each eruption and each u0 (100, 150, 200 m/s), sweeps r0 to build a
-Q–H curve using per-eruption T0 and n0, then interpolates Q at z_target.
-Results are plotted as a categorical dot plot (eruption on Y, Q on X).
+Q–H curve using per-eruption T0 and n0, then interpolates Q and r0 at
+z_target.  Marker shape encodes u0; dot color encodes r0 (plasma colormap).
 
 Usage:
     uv run python scripts/plot_discharge_rate.py
@@ -15,10 +15,13 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+import matplotlib.cm as cm
+import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import yaml
+from matplotlib.lines import Line2D
 
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT / "src"))
@@ -31,12 +34,9 @@ from plume_model import PlumeParams, run_plume
 R0_MIN  = 10.0
 R0_MAX  = 250.0
 R0_STEP = 5.0
-U0_LIST = [100, 200]
+U0_LIST = [100, 150, 200]
 
-U0_STYLES = {
-    100: dict(color="tab:blue",  marker="o", label="$u_0$ = 100 m/s"),
-    200: dict(color="tab:green", marker="^", label="$u_0$ = 200 m/s"),
-}
+U0_MARKERS = {100: "o", 150: "s", 200: "^"}
 
 ERUPTION_ORDER = ["Sakurajima1914", "Komagatake1929", "Tokachi1962", "Usu1977"]
 
@@ -52,7 +52,7 @@ def load_atmosphere(cfg: dict):
     return build_profile(df, cfg["vent_height_m"])
 
 
-def trim_curve(Q_vals, z_vals):
+def trim_curve(Q_vals, z_vals, r0_arr):
     z_peak, n = 0.0, 0
     for q, z in zip(Q_vals, z_vals):
         if not np.isfinite(z) or z < 500:
@@ -61,21 +61,25 @@ def trim_curve(Q_vals, z_vals):
             break
         z_peak = max(z_peak, z)
         n += 1
-    return np.array(Q_vals[:n]), np.array(z_vals[:n])
+    return np.array(Q_vals[:n]), np.array(z_vals[:n]), r0_arr[:n]
 
 
-def interp_Q_at_z(Q_arr, z_arr, z_target):
+def interp_at_z(Q_arr, z_arr, r0_arr, z_target):
+    """Return (Q, r0) interpolated at z_target, or (None, None)."""
     if len(z_arr) < 2:
-        return None
+        return None, None
     sort_idx = np.argsort(z_arr)
-    z_s = z_arr[sort_idx]
-    Q_s = Q_arr[sort_idx]
+    z_s  = z_arr[sort_idx]
+    Q_s  = Q_arr[sort_idx]
+    r0_s = r0_arr[sort_idx]
     if z_target < z_s[0] or z_target > z_s[-1]:
-        return None
-    return float(np.interp(z_target, z_s, Q_s))
+        return None, None
+    Q  = float(np.interp(z_target, z_s, Q_s))
+    r0 = float(np.interp(z_target, z_s, r0_s))
+    return Q, r0
 
 
-def compute_Q_at_target(cfg: dict, u0: float) -> float | None:
+def compute_at_target(cfg: dict, u0: float):
     T0 = float(cfg["forward"]["T0_K"])
     n0 = float(cfg["forward"]["n0"])
     z_target = float(cfg["qdet"]["z_target_m"])
@@ -92,8 +96,8 @@ def compute_Q_at_target(cfg: dict, u0: float) -> float | None:
         Q_vals.append(res["Q"])
         z_vals.append(z_max)
 
-    Q_arr, z_arr = trim_curve(Q_vals, z_vals)
-    return interp_Q_at_z(Q_arr, z_arr, z_target)
+    Q_arr, z_arr, r0_trim = trim_curve(Q_vals, z_vals, r0_arr)
+    return interp_at_z(Q_arr, z_arr, r0_trim, z_target)
 
 
 def main():
@@ -107,34 +111,39 @@ def main():
         catalog = yaml.safe_load(f)["eruptions"]
 
     # --- compute ----------------------------------------------------------
-    results = {}   # results[key][u0] = Q or None
+    results = {}   # results[key][u0] = (Q, r0) or (None, None)
     for key in ERUPTION_ORDER:
         cfg = catalog[key]
         results[key] = {}
         for u0 in U0_LIST:
-            Q = compute_Q_at_target(cfg, u0)
-            results[key][u0] = Q
-            status = f"{Q:.2e} kg/s" if Q is not None else "not reached"
-            print(f"  [{key}] u0={u0} m/s → Q = {status}")
+            Q, r0 = compute_at_target(cfg, u0)
+            results[key][u0] = (Q, r0)
+            if Q is not None:
+                print(f"  [{key}] u0={u0} m/s → Q={Q:.2e} kg/s  r0={r0:.1f} m")
+            else:
+                print(f"  [{key}] u0={u0} m/s → not reached")
 
     # --- plot -------------------------------------------------------------
+    cmap = cm.plasma
+    norm = mcolors.Normalize(vmin=R0_MIN, vmax=R0_MAX)
+
     fig, ax = plt.subplots(figsize=(7, 4))
 
     y_positions = {key: i for i, key in enumerate(reversed(ERUPTION_ORDER))}
     y_labels    = {key: catalog[key].get("name_en", key) for key in ERUPTION_ORDER}
 
-    offset = {100: -0.12, 200: 0.12}
+    offsets = {100: -0.15, 150: 0.0, 200: 0.15}
 
     for u0 in U0_LIST:
-        sty = U0_STYLES[u0]
-        xs, ys = [], []
+        marker = U0_MARKERS[u0]
         for key in ERUPTION_ORDER:
-            Q = results[key][u0]
-            if Q is not None:
-                xs.append(Q)
-                ys.append(y_positions[key] + offset[u0])
-        ax.scatter(xs, ys, color=sty["color"], marker=sty["marker"],
-                   s=80, zorder=5, label=sty["label"])
+            Q, r0 = results[key][u0]
+            if Q is None:
+                continue
+            y = y_positions[key] + offsets[u0]
+            color = cmap(norm(r0))
+            ax.scatter([Q], [y], color=color, marker=marker, s=100,
+                       edgecolors="gray", linewidths=0.5, zorder=5)
 
     ax.set_xscale("log")
     ax.set_xlabel("Discharge rate  (kg/s)", fontsize=12)
@@ -144,8 +153,21 @@ def main():
     ax.tick_params(axis="y", length=0)
     ax.set_xlim(1e6, 1e8)
     ax.grid(True, axis="x", alpha=0.4, which="both")
-    ax.legend(fontsize=10, loc="lower right")
     ax.set_title("Estimated discharge rate at observed plume height", fontsize=11)
+
+    # legend: marker shape for u0
+    legend_handles = [
+        Line2D([0], [0], marker=U0_MARKERS[u0], color="gray", linestyle="none",
+               markersize=8, label=f"$u_0$ = {u0} m/s")
+        for u0 in U0_LIST
+    ]
+    ax.legend(handles=legend_handles, fontsize=10, loc="lower right")
+
+    # colorbar: r0
+    sm = cm.ScalarMappable(cmap=cmap, norm=norm)
+    sm.set_array([])
+    cbar = fig.colorbar(sm, ax=ax)
+    cbar.set_label("$r_0$  [m]", fontsize=11)
 
     plt.tight_layout()
 
