@@ -142,7 +142,7 @@ def main():
                 continue
             y = y_positions[key] + offsets[u0]
             color = cmap(norm(r0))
-            ax.scatter([Q], [y], color=color, marker=marker, s=100,
+            ax.scatter([Q], [y], color=color, marker=marker, s=50,
                        edgecolors="gray", linewidths=0.5, zorder=5)
 
     ax.set_xscale("log")
