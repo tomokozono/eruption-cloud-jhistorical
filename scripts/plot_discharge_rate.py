@@ -109,6 +109,8 @@ def main():
                         help="Radial entrainment coefficient (default: 0.06)")
     parser.add_argument("--kw", type=float, default=0.20,
                         help="Wind entrainment coefficient (default: 0.20)")
+    parser.add_argument("--errorbar", action="store_true",
+                        help="Add error bars from ke=0.05/kw=0.1 (min) to ke=0.06/kw=0.3 (max)")
     args = parser.parse_args()
 
     ke, kw = args.ke, args.kw
@@ -130,6 +132,20 @@ def main():
             else:
                 print(f"  [{key}] u0={u0} m/s → not reached")
 
+    # error bar bounds (ke=0.05/kw=0.1 = min, ke=0.06/kw=0.3 = max)
+    if args.errorbar:
+        print("\n--- computing error bar bounds ---")
+        results_min, results_max = {}, {}
+        for key in ERUPTION_ORDER:
+            cfg = catalog[key]
+            results_min[key], results_max[key] = {}, {}
+            for u0 in U0_LIST:
+                Q_min, _ = compute_at_target(cfg, u0, ke=0.05, kw=0.1)
+                Q_max, _ = compute_at_target(cfg, u0, ke=0.06, kw=0.3)
+                results_min[key][u0] = Q_min
+                results_max[key][u0] = Q_max
+                print(f"  [{key}] u0={u0}: Q_min={Q_min:.2e}  Q_max={Q_max:.2e}")
+
     # --- plot -------------------------------------------------------------
     cmap = cm.plasma
     norm = mcolors.Normalize(vmin=R0_MIN, vmax=R0_MAX)
@@ -149,6 +165,17 @@ def main():
                 continue
             y = y_positions[key] + offsets[u0]
             color = cmap(norm(r0))
+            # error bars
+            if args.errorbar:
+                Q_min = results_min[key][u0]
+                Q_max = results_max[key][u0]
+                if Q_min is not None and Q_max is not None:
+                    ax.plot([Q_min, Q_max], [y, y], color="gray",
+                            linewidth=1.2, zorder=4)
+                    ax.plot([Q_min, Q_min], [y - 0.06, y + 0.06], color="gray",
+                            linewidth=1.2, zorder=4)
+                    ax.plot([Q_max, Q_max], [y - 0.06, y + 0.06], color="gray",
+                            linewidth=1.2, zorder=4)
             ax.scatter([Q], [y], color=color, marker=marker, s=50,
                        edgecolors="gray", linewidths=0.5, zorder=5)
 
@@ -160,9 +187,11 @@ def main():
     ax.tick_params(axis="y", length=0)
     ax.set_xlim(1e6, 1e8)
     ax.grid(True, axis="x", alpha=0.4, which="both")
+    eb_note = ("\nerror bar: $k_e$=0.05/$k_w$=0.1 (min) – $k_e$=0.06/$k_w$=0.3 (max)"
+               if args.errorbar else "")
     ax.set_title(
         f"Estimated discharge rate at observed plume height\n"
-        f"($k_e$ = {ke},  $k_w$ = {kw})",
+        f"($k_e$ = {ke},  $k_w$ = {kw}){eb_note}",
         fontsize=11,
     )
 
@@ -182,12 +211,17 @@ def main():
 
     plt.tight_layout()
 
-    out_dir = ROOT / args.output_dir / "discharge_rate" / subdir
+    if args.errorbar:
+        out_dir = ROOT / args.output_dir / "discharge_rate"
+        stem = "discharge_rate"
+    else:
+        out_dir = ROOT / args.output_dir / "discharge_rate" / subdir
+        stem = "discharge_rate"
     out_dir.mkdir(parents=True, exist_ok=True)
     for suffix in (".png", ".eps"):
-        out = out_dir / f"discharge_rate{suffix}"
-        kw = {"dpi": 150} if suffix == ".png" else {}
-        plt.savefig(out, **kw)
+        out = out_dir / f"{stem}{suffix}"
+        save_kw = {"dpi": 150} if suffix == ".png" else {}
+        plt.savefig(out, **save_kw)
         print(f"→ saved {out.relative_to(ROOT)}")
     plt.close()
 
