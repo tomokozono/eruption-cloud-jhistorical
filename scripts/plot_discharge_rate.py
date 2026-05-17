@@ -79,14 +79,14 @@ def interp_at_z(Q_arr, z_arr, r0_arr, z_target):
     return Q, r0
 
 
-def compute_at_target(cfg: dict, u0: float):
+def compute_at_target(cfg: dict, u0: float, ke: float, kw: float):
     T0 = float(cfg["forward"]["T0_K"])
     n0 = float(cfg["forward"]["n0"])
     z_target = float(cfg["qdet"]["z_target_m"])
 
     df_rel, v_func, tempa_func, p_func = load_atmosphere(cfg)
     z_stop = float(df_rel["z_rel_m"].max())
-    params = PlumeParams(T0=T0, n0=n0)
+    params = PlumeParams(T0=T0, n0=n0, ke=ke, kw=kw)
 
     r0_arr = np.arange(R0_MIN, R0_MAX + R0_STEP * 0.5, R0_STEP)
     Q_vals, z_vals = [], []
@@ -105,7 +105,14 @@ def main():
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument("--output-dir", default="output")
+    parser.add_argument("--ke", type=float, default=0.06,
+                        help="Radial entrainment coefficient (default: 0.06)")
+    parser.add_argument("--kw", type=float, default=0.20,
+                        help="Wind entrainment coefficient (default: 0.20)")
     args = parser.parse_args()
+
+    ke, kw = args.ke, args.kw
+    subdir = f"ke{int(ke*1000):03d}_kw{int(kw*1000):03d}"
 
     with open(ROOT / "eruptions" / "catalog.yaml") as f:
         catalog = yaml.safe_load(f)["eruptions"]
@@ -116,7 +123,7 @@ def main():
         cfg = catalog[key]
         results[key] = {}
         for u0 in U0_LIST:
-            Q, r0 = compute_at_target(cfg, u0)
+            Q, r0 = compute_at_target(cfg, u0, ke, kw)
             results[key][u0] = (Q, r0)
             if Q is not None:
                 print(f"  [{key}] u0={u0} m/s → Q={Q:.2e} kg/s  r0={r0:.1f} m")
@@ -153,7 +160,11 @@ def main():
     ax.tick_params(axis="y", length=0)
     ax.set_xlim(1e6, 1e8)
     ax.grid(True, axis="x", alpha=0.4, which="both")
-    ax.set_title("Estimated discharge rate at observed plume height", fontsize=11)
+    ax.set_title(
+        f"Estimated discharge rate at observed plume height\n"
+        f"($k_e$ = {ke},  $k_w$ = {kw})",
+        fontsize=11,
+    )
 
     # legend: marker shape for u0
     legend_handles = [
@@ -171,7 +182,7 @@ def main():
 
     plt.tight_layout()
 
-    out_dir = ROOT / args.output_dir / "discharge_rate"
+    out_dir = ROOT / args.output_dir / "discharge_rate" / subdir
     out_dir.mkdir(parents=True, exist_ok=True)
     for suffix in (".png", ".eps"):
         out = out_dir / f"discharge_rate{suffix}"

@@ -86,7 +86,7 @@ def interp_Q_at_z(Q_arr, z_arr, z_target):
     return float(np.interp(z_target, z_sorted, Q_sorted))
 
 
-def make_figure(catalog: dict, u0: float, output_path: Path):
+def make_figure(catalog: dict, u0: float, ke: float, kw: float, output_path: Path):
     r0_arr = np.arange(R0_MIN, R0_MAX + R0_STEP * 0.5, R0_STEP)
     norm = mcolors.Normalize(vmin=R0_MIN, vmax=R0_MAX)
     cmap = cm.plasma
@@ -108,7 +108,7 @@ def make_figure(catalog: dict, u0: float, output_path: Path):
 
         df_rel, v_func, tempa_func, p_func = load_atmosphere(cfg)
         z_stop = float(df_rel["z_rel_m"].max())
-        params = PlumeParams(T0=T0, n0=n0)
+        params = PlumeParams(T0=T0, n0=n0, ke=ke, kw=kw)
 
         Q_vals, z_vals = [], []
         for r0 in r0_arr:
@@ -141,7 +141,8 @@ def make_figure(catalog: dict, u0: float, output_path: Path):
     ax.set_title(
         f"Column height vs discharge rate\n"
         f"($u_0$ = {int(u0)} m/s,  "
-        f"$r_0$ = {int(R0_MIN)}–{int(R0_MAX)} m)\n"
+        f"$r_0$ = {int(R0_MIN)}–{int(R0_MAX)} m,  "
+        f"$k_e$ = {ke},  $k_w$ = {kw})\n"
         f"black dot: observed plume height",
         fontsize=11,
     )
@@ -169,19 +170,27 @@ def main():
     )
     parser.add_argument("--output-dir", default="output",
                         help="Root output directory (default: output/)")
+    parser.add_argument("--ke", type=float, default=0.06,
+                        help="Radial entrainment coefficient (default: 0.06)")
+    parser.add_argument("--kw", type=float, default=0.20,
+                        help="Wind entrainment coefficient (default: 0.20)")
     args = parser.parse_args()
+
+    ke, kw = args.ke, args.kw
+    subdir = f"ke{int(ke*1000):03d}_kw{int(kw*1000):03d}"
 
     with open(ROOT / "eruptions" / "catalog.yaml") as f:
         catalog = yaml.safe_load(f)["eruptions"]
 
-    out_dir = ROOT / args.output_dir / "qh_sensitivity_each"
+    out_dir = ROOT / args.output_dir / "qh_sensitivity_each" / subdir
     out_dir.mkdir(parents=True, exist_ok=True)
+    print(f"ke={ke}  kw={kw}  → {out_dir.relative_to(ROOT)}")
 
     total = len(U0_LIST)
     for count, u0 in enumerate(U0_LIST, 1):
         print(f"\n[{count}/{total}] u0={u0} m/s")
         out = out_dir / f"qh_sensitivity_each_u0{u0:03d}.png"
-        make_figure(catalog, u0, out)
+        make_figure(catalog, u0, ke, kw, out)
 
 
 if __name__ == "__main__":
