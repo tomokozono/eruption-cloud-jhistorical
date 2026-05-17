@@ -16,8 +16,6 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-import matplotlib.cm as cm
-import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -113,15 +111,11 @@ def run_forward_qdet(cfg: dict, eruption_key: str, output_dir: Path):
     res = run_plume(r0_det, U0, params, v_func, tempa_func, p_func, z_stop=z_stop)
 
     # --- plot ----------------------------------------------------------------
-    cmap = cm.plasma
-    norm = mcolors.Normalize(vmin=R0_MIN, vmax=R0_MAX)
-    color = cmap(norm(r0_det))
-
     x_max = 10_000 if cfg["reanalysis"] == "20cr" else 5_000
     fig, axs = plt.subplots(nrows=1, ncols=3, figsize=(15, 5), sharey=True)
 
-    axs[0].plot(res["u"], res["z"], color=color, linewidth=2)
-    axs[1].plot(res["x"], res["z"], color=color, linewidth=2)
+    axs[0].plot(res["u"], res["z"], color="tab:orange", linewidth=2)
+    axs[1].plot(res["x"], res["z"], color="tab:orange", linewidth=2)
 
     for col in (0, 1):
         axs[col].axhline(z_target, color="black", linewidth=1.2, linestyle="--",
@@ -158,11 +152,6 @@ def run_forward_qdet(cfg: dict, eruption_key: str, output_dir: Path):
     ax_dir.set_xlabel("Wind direction (deg from N)", color="r")
     ax_dir.tick_params(axis="x", colors="r")
     ax_dir.set_xlim(0, 360)
-
-    # colorbar for r0 reference
-    sm = cm.ScalarMappable(cmap=cmap, norm=norm)
-    sm.set_array([])
-    fig.colorbar(sm, ax=axs[1]).set_label("$r_0$  [m]", fontsize=10)
 
     # eruption name label (suptitle-style text above center panel)
     axs[1].text(0.5, 1.12, name_en, transform=axs[1].transAxes,
