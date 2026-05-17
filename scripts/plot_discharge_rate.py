@@ -31,12 +31,11 @@ from plume_model import PlumeParams, run_plume
 R0_MIN  = 10.0
 R0_MAX  = 250.0
 R0_STEP = 5.0
-U0_LIST = [100, 150, 200]
+U0_LIST = [100, 200]
 
 U0_STYLES = {
-    100: dict(color="tab:blue",   marker="o", label="$u_0$ = 100 m/s"),
-    150: dict(color="tab:orange", marker="s", label="$u_0$ = 150 m/s"),
-    200: dict(color="tab:green",  marker="^", label="$u_0$ = 200 m/s"),
+    100: dict(color="tab:blue",  marker="o", label="$u_0$ = 100 m/s"),
+    200: dict(color="tab:green", marker="^", label="$u_0$ = 200 m/s"),
 }
 
 ERUPTION_ORDER = ["Sakurajima1914", "Komagatake1929", "Tokachi1962", "Usu1977"]
@@ -124,7 +123,7 @@ def main():
     y_positions = {key: i for i, key in enumerate(reversed(ERUPTION_ORDER))}
     y_labels    = {key: catalog[key].get("name_en", key) for key in ERUPTION_ORDER}
 
-    offset = {100: -0.15, 150: 0.0, 200: 0.15}   # vertical jitter per u0
+    offset = {100: -0.12, 200: 0.12}
 
     for u0 in U0_LIST:
         sty = U0_STYLES[u0]
